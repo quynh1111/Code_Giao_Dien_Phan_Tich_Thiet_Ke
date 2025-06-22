@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký tài khoản - EduLearn</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .register-box {
+      background: white;
+      padding: 2rem 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #a435f0;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #892cdc;
+    }
+    .note {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .note a {
+      color: #a435f0;
+      text-decoration: none;
+    }
+    .error {
+      color: red;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-box">
+    <h2>Đăng ký tài khoản</h2>
+    <div class="error" id="error"></div>
+    <input type="text" id="username" placeholder="Tên đăng nhập" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Mật khẩu" required>
+    <select id="role">
+      <option value="">-- Chọn vai trò --</option>
+      <option value="hocvien">Học viên</option>
+      <option value="giangvien">Giảng viên</option>
+    </select>
+    <button onclick="register()">Đăng ký</button>
+    <div class="note">
+      Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+    </div>
+  </div>
+
+  <script>
+    function register() {
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const errorBox = document.getElementById('error');
+
+      if (!username || !email || !password || !role) {
+        errorBox.textContent = 'Vui lòng điền đầy đủ thông tin!';
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem('users')) || [];
+      if (users.find(u => u.username === username)) {
+        errorBox.textContent = 'Tên đăng nhập đã tồn tại!';
+        return;
+      }
+
+      users.push({ username, email, password, role, status: 'active' });
+      localStorage.setItem('users', JSON.stringify(users));
+
+      alert('Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

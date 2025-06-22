@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - EduLearn</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: white;
+      padding: 2rem 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #a435f0;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #892cdc;
+    }
+    .note {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .note a {
+      color: #a435f0;
+      text-decoration: none;
+    }
+    .error {
+      color: red;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Đăng nhập</h2>
+    <div class="error" id="error"></div>
+    <input type="text" id="username" placeholder="Tên đăng nhập" required>
+    <input type="password" id="password" placeholder="Mật khẩu" required>
+    <select id="role">
+      <option value="">-- Chọn vai trò --</option>
+      <option value="hocvien">Học viên</option>
+      <option value="giangvien">Giảng viên</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="login()">Đăng nhập</button>
+    <div class="note">
+      Chưa có tài khoản? <a href="register.html">Đăng ký</a>
+    </div>
+  </div>
+
+  <script>
+    // Khởi tạo tài khoản admin nếu chưa có
+    window.onload = () => {
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      if (!users.find(u => u.username === 'admin')) {
+        users.push({
+          username: 'admin',
+          password: 'admin123',
+          email: 'admin@edu.vn',
+          role: 'admin',
+          status: 'active'
+        });
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    };
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const selectedRole = document.getElementById('role').value;
+      const errorBox = document.getElementById('error');
+
+      if (!username || !password) {
+        errorBox.textContent = 'Vui lòng nhập đầy đủ thông tin!';
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (!user) {
+        errorBox.textContent = 'Tên đăng nhập hoặc mật khẩu không đúng!';
+        return;
+      }
+
+      if (user.status === 'locked') {
+        errorBox.textContent = 'Tài khoản của bạn đã bị khóa!';
+        return;
+      }
+
+      // Trường hợp tài khoản admin
+      if (user.role === 'admin') {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        window.location.href = 'index-admin.html';
+        return;
+      }
+
+      // Kiểm tra vai trò đã chọn
+      if (!selectedRole) {
+        errorBox.textContent = 'Vui lòng chọn vai trò!';
+        return;
+      }
+
+      if (user.role !== selectedRole) {
+        errorBox.textContent = 'Vai trò không đúng với tài khoản!';
+        return;
+      }
+
+      // Lưu user hiện tại và chuyển hướng theo vai trò
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      if (user.role === 'hocvien') {
+        window.location.href = 'index.html';
+      } 
+      else if (user.role === 'giangvien') {
+        window.location.href = 'index-giangvien.html';
+      }
+      else if(user.role === 'admin') {
+        window.location.href = 'index-admin.html';
+      }
+    }
+  </script>
+</body>
+</html>

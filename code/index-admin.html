@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản trị viên - EduLearn</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
+    header { background: #1c1d1f; color: white; padding: 1rem; text-align: center; }
+    nav { background: #2d2f31; display: flex; gap: 1rem; padding: 1rem; }
+    nav a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 5px; }
+    nav a:hover { background: #3e4143; }
+    section { padding: 2rem; margin: auto; max-width: 1000px; background: white; margin-bottom: 2rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    h2 { color: #1c1d1f; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f0f0f0; }
+    button { padding: 0.5rem 1rem; background: #a435f0; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #892cdc; }
+  </style>
+</head>
+<body>
+  <header><h1>Quản trị viên - Bảng điều khiển</h1></header>
+  <nav>
+    <a href="#duyet">Phê duyệt khóa học</a>
+    <a href="#nguoidung">Quản lý người dùng</a>
+    <a href="#lichsu">Lịch sử đăng ký</a>
+    <a href="#thongke">Thống kê</a>
+  </nav>
+
+  <section id="duyet">
+    <h2>Phê duyệt khóa học</h2>
+    <table id="pendingCourses">
+      <thead>
+        <tr><th>Tên</th><th>Mô tả</th><th>Người tạo</th><th>Giá</th><th>Duyệt</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="nguoidung">
+    <h2>Quản lý người dùng</h2>
+    <table id="userTable">
+      <thead>
+        <tr><th>Tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Hành động</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="lichsu">
+    <h2>Lịch sử đăng ký khóa học</h2>
+    <table id="historyTable">
+      <thead>
+        <tr><th>Học viên</th><th>Khóa học</th><th>Ngày đăng ký</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="thongke">
+    <h2>Thống kê tổng quan</h2>
+    <ul id="stats">
+      <li>Tổng học viên: ...</li>
+      <li>Tổng giảng viên: ...</li>
+      <li>Khóa học đã duyệt: ...</li>
+      <li>Lượt đăng ký: ...</li>
+    </ul>
+  </section>
+
+  <script>
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const courses = JSON.parse(localStorage.getItem('courses')) || [];
+    const regs = JSON.parse(localStorage.getItem('registrations')) || [];
+
+    function renderUsers() {
+      const tbody = document.querySelector('#userTable tbody');
+      tbody.innerHTML = '';
+      users.filter(u => u.role !== 'admin').forEach(u => {
+        const row = `<tr>
+          <td>${u.username}</td><td>${u.email}</td><td>${u.role}</td>
+          <td>${u.status}</td>
+          <td><button onclick="toggleUser('${u.username}')">${u.status === 'locked' ? 'Mở' : 'Khóa'}</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function toggleUser(username) {
+      const user = users.find(u => u.username === username);
+      if (user) {
+        user.status = user.status === 'locked' ? 'active' : 'locked';
+        localStorage.setItem('users', JSON.stringify(users));
+        renderUsers();
+      }
+    }
+
+    function renderCourses() {
+      const tbody = document.querySelector('#pendingCourses tbody');
+      tbody.innerHTML = '';
+      courses.filter(c => c.status === 'pending').forEach(c => {
+        const row = `<tr>
+          <td>${c.title}</td><td>${c.description}</td><td>${c.createdBy}</td>
+          <td>${c.price}</td>
+          <td><button onclick="approveCourse('${c.id}')">Duyệt</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function approveCourse(courseId) {
+      const course = courses.find(c => c.id === courseId);
+      if (course) {
+        course.status = 'approved';
+        localStorage.setItem('courses', JSON.stringify(courses));
+        renderCourses();
+      }
+    }
+
+    function renderHistory() {
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+      regs.forEach(r => {
+        const course = courses.find(c => c.id === r.courseId);
+        if (course) {
+          tbody.innerHTML += `<tr><td>${r.username}</td><td>${course.title}</td><td>${r.date}</td></tr>`;
+        }
+      });
+    }
+
+    function renderStats() {
+      const hocviens = users.filter(u => u.role === 'hocvien').length;
+      const giangviens = users.filter(u => u.role === 'giangvien').length;
+      const approvedCourses = courses.filter(c => c.status === 'approved').length;
+      const tongdk = regs.length;
+
+      const statList = document.querySelector('#stats');
+      statList.innerHTML = `
+        <li>Tổng học viên: ${hocviens}</li>
+        <li>Tổng giảng viên: ${giangviens}</li>
+        <li>Khóa học đã duyệt: ${approvedCourses}</li>
+        <li>Lượt đăng ký: ${tongdk}</li>
+      `;
+    }
+
+    renderUsers();
+    renderCourses();
+    renderHistory();
+    renderStats();
+  </script>
+</body>
+</html>

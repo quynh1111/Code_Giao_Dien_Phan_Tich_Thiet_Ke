@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang giảng viên - EduLearn</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f5f5f5; }
+    header { background: #1c1d1f; color: white; padding: 1rem; text-align: center; }
+    nav { background: #2d2f31; display: flex; gap: 1rem; padding: 1rem; }
+    nav a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 5px; }
+    nav a:hover { background: #3e4143; }
+    section { padding: 2rem; margin: auto; max-width: 1000px; background: white; margin-bottom: 2rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    h2 { color: #1c1d1f; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f0f0f0; }
+    button { padding: 0.5rem 1rem; background: #a435f0; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #892cdc; }
+    input, textarea { width: 100%; padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <header><h1>Trang giảng viên - Quản lý khóa học</h1></header>
+  <nav>
+    <a href="#tao">Quản Lý khóa học</a>
+    <a href="#danhsach">Khóa học của tôi</a>
+    <a href="#hoso">Hồ sơ cá nhân</a>
+  </nav>
+
+  <section id="tao">
+    <h2>Tạo khóa học</h2>
+    <input type="text" id="course-title" placeholder="Tên khóa học">
+    <textarea id="course-desc" placeholder="Mô tả khóa học"></textarea>
+    <input type="number" id="course-price" placeholder="Giá khóa học (VND)">
+    <button onclick="createCourse()">Tạo khóa học</button>
+  </section>
+
+  <section id="danhsach">
+    <h2>Khóa học của tôi</h2>
+    <table>
+      <thead>
+        <tr><th>Tên</th><th>Mô tả</th><th>Giá</th><th>Trạng thái</th><th>Xóa</th></tr>
+      </thead>
+      <tbody id="myCourses"></tbody>
+    </table>
+  </section>
+
+  <section id="hoso">
+    <h2>Hồ sơ cá nhân</h2>
+    <input type="text" id="gv-name" placeholder="Tên giảng viên">
+    <input type="email" id="gv-email" placeholder="Email">
+    <input type="text" id="gv-name" placeholder="Chứng chỉ">
+
+
+    <button onclick="saveProfile()">Lưu hồ sơ</button>
+  </section>
+
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const courses = JSON.parse(localStorage.getItem('courses')) || [];
+
+    function createCourse() {
+      const title = document.getElementById('course-title').value.trim();
+      const description = document.getElementById('course-desc').value.trim();
+      const price = document.getElementById('course-price').value;
+      if (!title || !description || !price) return alert('Điền đầy đủ thông tin!');
+      const newCourse = {
+        id: Date.now().toString(),
+        title,
+        description,
+        price,
+        createdBy: currentUser.username,
+        status: 'pending'
+      };
+      courses.push(newCourse);
+      localStorage.setItem('courses', JSON.stringify(courses));
+      alert('Đã gửi phê duyệt!');
+      renderMyCourses();
+    }
+
+    function renderMyCourses() {
+      const list = document.getElementById('myCourses');
+      list.innerHTML = '';
+      courses.filter(c => c.createdBy === currentUser.username).forEach(c => {
+        list.innerHTML += `<tr>
+          <td>${c.title}</td>
+          <td>${c.description}</td>
+          <td>${c.price}</td>
+          <td>${c.status}</td>
+          <td><button onclick="deleteCourse('${c.id}')">Xóa</button></td>
+        </tr>`;
+      });
+    }
+
+    function deleteCourse(id) {
+      const idx = courses.findIndex(c => c.id === id && c.createdBy === currentUser.username);
+      if (idx !== -1) {
+        courses.splice(idx, 1);
+        localStorage.setItem('courses', JSON.stringify(courses));
+        renderMyCourses();
+      }
+    }
+
+    function saveProfile() {
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const name = document.getElementById('gv-name').value;
+      const email = document.getElementById('gv-email').value;
+      const user = users.find(u => u.username === currentUser.username);
+      if (user) {
+        user.email = email;
+        localStorage.setItem('users', JSON.stringify(users));
+        alert('Hồ sơ đã cập nhật');
+      }
+    }
+
+    renderMyCourses();
+  </script>
+</body>
+</html>
